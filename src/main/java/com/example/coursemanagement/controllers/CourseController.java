@@ -1,11 +1,16 @@
 package com.example.coursemanagement.controllers;
 
+import com.example.coursemanagement.enums.CourseStatus;
 import com.example.coursemanagement.models.dto.request.course_request.CourseCreateRequest;
 import com.example.coursemanagement.models.dto.request.course_request.CourseUpdateRequest;
 import com.example.coursemanagement.models.dto.response.ApiResponse;
+import com.example.coursemanagement.models.dto.response.PageResponse;
 import com.example.coursemanagement.models.dto.response.course_response.CourseResponse;
+import com.example.coursemanagement.models.dto.response.course_response.CourseResponseV2;
 import com.example.coursemanagement.models.services.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +25,19 @@ public class CourseController {
 
     // get all courses
     @GetMapping("")
-    public ResponseEntity<ApiResponse<List<CourseResponse>>> getAllCourses() {
+    public ResponseEntity<ApiResponse<PageResponse<CourseResponseV2>>> getAllCourses(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "sortBy", defaultValue = "") String sortBy,
+            @RequestParam(name = "direction", defaultValue = "") Sort.Direction direction,
+            @RequestParam(name = "status", defaultValue = "") CourseStatus status,
+            @RequestParam(name = "search", defaultValue = "") String search
+    ) {
 
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "Fetched courses successfully",
-                        courseService.getAllCourses()
+                        courseService.getPagedCoursesByStatusV2(page, size, sortBy, direction, status, search)
                 )
         );
     }

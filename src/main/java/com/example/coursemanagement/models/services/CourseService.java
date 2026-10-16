@@ -1,14 +1,21 @@
 package com.example.coursemanagement.models.services;
 
-import com.example.coursemanagement.config.mappers.MyMapper;
+import com.example.coursemanagement.config.mappers.CourseMapper;
+import com.example.coursemanagement.config.mappers.PageResMapper;
+import com.example.coursemanagement.enums.CourseStatus;
 import com.example.coursemanagement.models.dto.request.course_request.CourseCreateRequest;
 import com.example.coursemanagement.models.dto.request.course_request.CourseUpdateRequest;
+import com.example.coursemanagement.models.dto.response.PageResponse;
 import com.example.coursemanagement.models.dto.response.course_response.CourseResponse;
+import com.example.coursemanagement.models.dto.response.course_response.CourseResponseV2;
 import com.example.coursemanagement.models.entities.Course;
 import com.example.coursemanagement.models.entities.Instructor;
 import com.example.coursemanagement.models.repository.CourseRepository;
 import com.example.coursemanagement.models.repository.InstructorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +25,8 @@ import java.util.List;
 public class CourseService {
     private final CourseRepository courseRepository;
     private final InstructorRepository instructorRepository;
-    private final MyMapper courseMapper;
+    private final CourseMapper courseMapper;
+    private final PageResMapper pageResMapper;
 
     public List<CourseResponse> getAllCourses() {
         return courseRepository.findAll()
@@ -64,6 +72,86 @@ public class CourseService {
     public void deleteCourseById(Long id) {
         CourseResponse course = getCourseById(id);
         courseRepository.deleteById(id);
+    }
+
+    public PageResponse<CourseResponse> getPagedCourses(
+            int page,
+            int size,
+            String sortBy,
+            Sort.Direction direction
+    ) {
+        if (page < 0) {
+            page = 0;
+        }
+
+        if (sortBy == null || sortBy.isBlank()) {
+            sortBy = "id";
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        return pageResMapper.toResponse(
+                courseRepository.findAll(pageable),
+                courseMapper::toResponse
+        );
+    }
+
+    public PageResponse<CourseResponse> getPagedCoursesByStatus(
+            int page,
+            int size,
+            String sortBy,
+            Sort.Direction direction,
+            CourseStatus status) {
+
+        if (page < 0) {
+            page = 0;
+        }
+
+        if (sortBy == null || sortBy.isBlank()) {
+            sortBy = "id";
+        }
+
+        if (direction == null) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        return pageResMapper.toResponse(
+                courseRepository.findAllByStatus(status, pageable),
+                courseMapper::toResponse
+        );
+
+    }
+
+    public PageResponse<CourseResponseV2> getPagedCoursesByStatusV2(
+            int page,
+            int size,
+            String sortBy,
+            Sort.Direction direction,
+            CourseStatus status,
+            String search
+    ) {
+
+        if (page < 0) {
+            page = 0;
+        }
+
+        if (sortBy == null || sortBy.isBlank()) {
+            sortBy = "id";
+        }
+
+        if (direction == null) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        return pageResMapper.toResponse(
+                courseRepository.findAllByStatusV2(status, search, pageable)
+        );
     }
 
 }

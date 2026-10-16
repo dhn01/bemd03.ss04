@@ -5,7 +5,6 @@ import com.example.coursemanagement.models.entities.Course;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface MyMapper {
-
+public interface CourseMapper {
     CourseResponse toResponse(Course course);
 }
